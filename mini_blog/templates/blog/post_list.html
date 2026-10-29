@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Latest Posts | Mini Blog{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="bg-dark text-white py-5">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">Welcome to Mini Blog</h1>
+        <p class="lead text-secondary">Discover stories, ideas and knowledge.</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'post_create' %}" class="btn btn-primary btn-lg mt-3">Create Your Post</a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- MAIN -->
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Latest Posts</h2>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" name="q" class="form-control" placeholder="Search posts..." value="{{ search }}">
+                </div>
+                <div class="col-md-4">
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.slug }}" {% if category_slug == category.slug %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-dark w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- POSTS -->
+    <div class="row g-4">
+        {% for post in posts %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="card-img-top" style="height: 220px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 220px;">No Image</div>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        {% if post.category %}
+                            <span class="badge bg-primary align-self-start mb-2">{{ post.category.name }}</span>
+                        {% endif %}
+                        <h4 class="card-title fw-bold">{{ post.title }}</h4>
+                        <p class="text-muted small">By {{ post.author.username }} · {{ post.created_at|date:"M d, Y" }}</p>
+                        <p class="card-text text-secondary">{{ post.content|truncatewords:30 }}</p>
+                        <a href="{% url 'post_detail' post.slug %}" class="btn btn-outline-dark mt-auto">Read More →</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">No published posts found.</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search }}&category={{ category_slug }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search }}&category={{ category_slug }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
